@@ -483,6 +483,7 @@ target.layout = function() {
     console.log('> Cleaning packge path');
     rm('-Rf', packagePath);
 
+    // TODO: Do we still need to do this? I think so, but then copy inside the createNugetPackagePerTask and only copy task.zip. That's all we need.
     var layoutPath = util.createNonAggregatedZip(buildPath, packagePath);
 
     console.log('layout path: ' + layoutPath);

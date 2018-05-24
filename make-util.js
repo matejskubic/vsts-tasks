@@ -18,7 +18,7 @@ var downloadPath = path.join(__dirname, '_download');
 var cultureNames = ['cs', 'de', 'es', 'fr', 'it', 'ja', 'ko', 'pl', 'pt-BR', 'ru', 'tr', 'zh-Hans', 'zh-Hant'];
 
 // list of locales that we translate to
-var locales = ['de-de', 'en-US', 'es-es', 'fr-fr', 'it-IT', 'ja-jp', 'ko-KR', 'ru-RU', 'zh-CN', 'zh-TW'];
+// var locales = ['de-de', 'en-US', 'es-es', 'fr-fr', 'it-IT', 'ja-jp', 'ko-KR', 'ru-RU', 'zh-CN', 'zh-TW'];
 
 //------------------------------------------------------------------------------
 // shell functions
@@ -1297,7 +1297,7 @@ var createNugetPackagePerTask = function (packagePath, /*nonAggregatedLayoutPath
             // extract values that we need from task.json
             var taskVersion = taskJsonContents.version.Major + '.' + taskJsonContents.version.Minor + '.' + taskJsonContents.version.Patch;
             var taskName = taskJsonContents.name;
-            var fullTaskName = 'Mseng.MS.TF.DistributedTask.Tasks.' + taskName;
+            var fullTaskName = 'Mseng.MS.TF.DistributedTask.Tasks.' + taskFolderName; // NOTE: Just changed this from taskName to taskFolderName to accomodate new setup.
 
             // Create xml entries for UnifiedDependencies
             // <package id="Mseng.MS.TF.Build.Tasks.AzureCLI" version="1.132.0" availableAtDeployTime="true" />
@@ -1312,24 +1312,20 @@ var createNugetPackagePerTask = function (packagePath, /*nonAggregatedLayoutPath
             mkdir('-p', taskZipPath);
             console.log('root task folder: ' + taskZipPath);
 
-            // Create a task folder inside the folder so that when we do a nuget pack the contents are inside a folder.
-            // This makes things easier/cleaner downstream when we do servicing and prevents needing to zip the contents
-            //  a second time.
-            // TODO: Provide an example and downstream consumption case?
-            // TODO: I think there is a bug here, tasksZipsPath should be taskZipPath?
-            // Old, think theres a bug
-            //var folderInsideFolderPath = path.join(tasksZipsPath, taskFolderName);
-            // New, should be nested
-            var folderInsideFolderPath = path.join(taskZipPath, taskFolderName);
-            mkdir('-p', folderInsideFolderPath);
-            console.log('nested folder: ' + folderInsideFolderPath);
+            // var folderInsideFolderPath = path.join(taskZipPath, taskFolderName);
+            // mkdir('-p', folderInsideFolderPath);
+            // console.log('nested folder: ' + folderInsideFolderPath);
+
+            // TODO: Remove dependency for this too.
+            // var copydir = require('copy-dir');
+            // copydir.sync(taskLayoutPath, folderInsideFolderPath);
 
             // TOOD: This is probably slow. Check other code to do hard sync?
-            var copydir = require('copy-dir');
-            copydir.sync(taskLayoutPath, folderInsideFolderPath);
+            fs.copyFileSync(path.join(taskLayoutPath, 'task.zip'), path.join(taskZipPath, 'task.zip'));
 
-            // Write layout version file
-            fs.writeFileSync(path.join(folderInsideFolderPath, 'layout-version.txt'), '3');
+            // Write layout version file. Make sure this is written to the root of the NuGet package with only the task.zip
+            // fs.writeFileSync(path.join(folderInsideFolderPath, 'layout-version.txt'), '3');
+            fs.writeFileSync(path.join(taskZipPath, 'layout-version.txt'), '3');
 
             // Zip the folder from non aggregated layout and name it based on task.json contents. TODO: Refactor this to method?
             // TODO IMPORTANT: We want to zip it as an entire folder so that when we unzip it's a full folder? Makes the servicing processing simpler.
@@ -1385,14 +1381,15 @@ var getServicingXmlContent = function (taskFolderName, fullTaskName, taskVersion
     var servicingXmlContent = '';
     servicingXmlContent += `  <!-- Files for ${fullTaskName} -->` + os.EOL;
     servicingXmlContent += `  <Directory Path="[ServicingDir]Tasks\\Individual\\${taskFolderName}\\">` + os.EOL;
-    servicingXmlContent += `    <File Origin="nuget://${fullTaskName}/${taskFolderName}/*?version=${taskVersion}" />` + os.EOL;
+    //servicingXmlContent += `    <File Origin="nuget://${fullTaskName}/${taskFolderName}/*?version=${taskVersion}" />` + os.EOL;
+    servicingXmlContent += `    <File Origin="nuget://${fullTaskName}/*" />` + os.EOL; // NOTE: Don't need version any more since we are doing package per task major. Don't need nested task folder since we are just doing zip.
     servicingXmlContent += `  </Directory>` + os.EOL;
 
     // TODO: If we were to zip the task again we wouldn't need to do this. It would simplify the servicing XML but add time to unzip multiple times. We
     //       would then have a nuget, inside that a zip, and inside that a zip and files.
-    locales.forEach(function (locale) {
-        servicingXmlContent += getServicingXmlContentForLocale(taskFolderName, fullTaskName, taskVersion, locale);
-    });
+    // locales.forEach(function (locale) {
+    //     servicingXmlContent += getServicingXmlContentForLocale(taskFolderName, fullTaskName, taskVersion, locale);
+    // });
 
     // new line after to clear space for the next task
     servicingXmlContent += os.EOL;
@@ -1400,11 +1397,11 @@ var getServicingXmlContent = function (taskFolderName, fullTaskName, taskVersion
     return servicingXmlContent;
 }
 
-var getServicingXmlContentForLocale = function(taskFolderName, fullTaskName, taskVersion, locale) {
-    return `  <Directory Path="[ServicingDir]Tasks\\Individual\\${taskFolderName}\\Strings\\resources.resjson\\${locale}\\">` + os.EOL
-           + `    <File Origin="nuget://${fullTaskName}/${taskFolderName}/Strings/resources.resjson/${locale}/*?version=${taskVersion}" />` + os.EOL
-           + `  </Directory>` + os.EOL;
-}
+// var getServicingXmlContentForLocale = function(taskFolderName, fullTaskName, taskVersion, locale) {
+//     return `  <Directory Path="[ServicingDir]Tasks\\Individual\\${taskFolderName}\\Strings\\resources.resjson\\${locale}\\">` + os.EOL
+//            + `    <File Origin="nuget://${fullTaskName}/${taskFolderName}/Strings/resources.resjson/${locale}/*?version=${taskVersion}" />` + os.EOL
+//            + `  </Directory>` + os.EOL;
+// }
 
 /**
  * Create .nuspec file for the task.
