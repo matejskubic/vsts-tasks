@@ -1274,8 +1274,8 @@ var createNugetPackagePerTask = function (packagePath, /*nonAggregatedLayoutPath
     console.log();
     console.log('> Zipping task folders')
 
-    var unifiedDepsContent = '';
-    var servicingXmlContent = '';
+    var unifiedDepsContent = [];
+    var servicingXmlContent = [];
 
     fs.readdirSync(layoutPath)
         .forEach(function (taskFolderName) {
@@ -1303,10 +1303,10 @@ var createNugetPackagePerTask = function (packagePath, /*nonAggregatedLayoutPath
             // Create xml entries for UnifiedDependencies
             // <package id="Mseng.MS.TF.Build.Tasks.AzureCLI" version="1.132.0" availableAtDeployTime="true" />
             // TODO: Push this to array then at the end sort then join so its in order.
-            unifiedDepsContent += `  <package id="${fullTaskName}" version="${taskVersion}" availableAtDeployTime="true" />` + os.EOL;
+            unifiedDepsContent.push(`  <package id="${fullTaskName}" version="${taskVersion}" availableAtDeployTime="true" />`);
 
             // Get XML content that we need to configure servicing file
-            servicingXmlContent += getServicingXmlContent(taskFolderName, fullTaskName, taskVersion);
+            servicingXmlContent.push(getServicingXmlContent(taskFolderName, fullTaskName, taskVersion));
 
             // Create a matching folder inside taskZipsPath
             var taskZipPath = path.join(tasksZipsPath, taskFolderName);
@@ -1361,13 +1361,13 @@ var createNugetPackagePerTask = function (packagePath, /*nonAggregatedLayoutPath
     // <package id="Mseng.MS.TF.Build.Tasks.AzureCLI" version="1.132.0" availableAtDeployTime="true" />
     console.log('> Generating XML dependencies for UnifiedDependencies');
     var depsContentPath = path.join(artifactsPath, 'unified_deps.xml');
-    fs.writeFileSync(depsContentPath, unifiedDepsContent);
+    fs.writeFileSync(depsContentPath, unifiedDepsContent.sort().join(os.EOL));
 
     // Create xml entries for servicing
     // 	<File Origin="nuget://Mseng.MS.TF.DistributedTask.Tasks.XCode/*?version=2.121.0" />
     console.log('> Generating XML dependencies for Servicing');
     var servicingContentPath = path.join(artifactsPath, 'servicing.xml');
-    fs.writeFileSync(servicingContentPath, servicingXmlContent);
+    fs.writeFileSync(servicingContentPath, servicingXmlContent.sort().join());
 }
 exports.createNugetPackagePerTask = createNugetPackagePerTask;
 
@@ -1387,7 +1387,7 @@ var getServicingXmlContent = function (taskFolderName, fullTaskName, taskVersion
     // });
 
     // new line after to clear space for the next task
-    servicingXmlContent += os.EOL;
+    //servicingXmlContent += os.EOL;
 
     return servicingXmlContent;
 }
