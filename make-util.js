@@ -1367,7 +1367,7 @@ var createNugetPackagePerTask = function (packagePath, /*nonAggregatedLayoutPath
     // 	<File Origin="nuget://Mseng.MS.TF.DistributedTask.Tasks.XCode/*?version=2.121.0" />
     console.log('> Generating XML dependencies for Servicing');
     var servicingContentPath = path.join(artifactsPath, 'servicing.xml');
-    fs.writeFileSync(servicingContentPath, servicingXmlContent.sort().join());
+    fs.writeFileSync(servicingContentPath, servicingXmlContent.sort().join(''));
 }
 exports.createNugetPackagePerTask = createNugetPackagePerTask;
 
