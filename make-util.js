@@ -1289,15 +1289,16 @@ var createNugetPackagePerTask = function (packagePath, /*nonAggregatedLayoutPath
             if (taskFolderName === 'layout-version.txt') { // TODO: Clean this up. Make sure we have layout-version in each task nuget package? I think we need it? Is it applicable in nuget package per task setup?
                 return;
             }
-            
-            
+
             var taskJsonPath = path.join(taskLayoutPath, 'task.json');
             var taskJsonContents = JSON.parse(fs.readFileSync(taskJsonPath));
 
             // extract values that we need from task.json
             var taskVersion = taskJsonContents.version.Major + '.' + taskJsonContents.version.Minor + '.' + taskJsonContents.version.Patch;
             var taskName = taskJsonContents.name;
-            var fullTaskName = 'Mseng.MS.TF.DistributedTask.Tasks.' + taskFolderName; // NOTE: Just changed this from taskName to taskFolderName to accomodate new setup.
+
+            // Create the full task name so we don't need to rely on the folder name.
+            var fullTaskName = $`Mseng.MS.TF.DistributedTask.Tasks.${taskName}V${taskJsonContents.version.Major}`;
 
             // Create xml entries for UnifiedDependencies
             // <package id="Mseng.MS.TF.Build.Tasks.AzureCLI" version="1.132.0" availableAtDeployTime="true" />
@@ -1370,23 +1371,17 @@ var createNugetPackagePerTask = function (packagePath, /*nonAggregatedLayoutPath
 }
 exports.createNugetPackagePerTask = createNugetPackagePerTask;
 
+// Create xml entries for servicing
+// <Directory Path="[ServicingDir]Tasks\Individual\AndroidSigningV2\">
+//   <File Origin="nuget://Mseng.MS.TF.DistributedTask.Tasks.AndroidSigningV2/*" />
+// </Directory>
 var getServicingXmlContent = function (taskFolderName, fullTaskName, taskVersion) {
-    // Create xml entries for servicing
-    // OLD:
-    // 	<File Origin="nuget://Mseng.MS.TF.DistributedTask.Tasks.XCode/*?version=2.121.0" />
-    // NEW:
-    // <Directory Path="[ServicingDir]Tasks\Individual\AzurePowerShellV3\">
-    //     <File Origin="nuget://Mseng.MS.TF.DistributedTask.Tasks.AzurePowerShell/AzurePowerShellV3/*?version=3.0.3" />
-    // </Directory>
     var servicingXmlContent = '';
-    servicingXmlContent += `  <!-- Files for ${fullTaskName} -->` + os.EOL;
+    //servicingXmlContent += `  <!-- Files for ${fullTaskName} -->` + os.EOL;
     servicingXmlContent += `  <Directory Path="[ServicingDir]Tasks\\Individual\\${taskFolderName}\\">` + os.EOL;
-    //servicingXmlContent += `    <File Origin="nuget://${fullTaskName}/${taskFolderName}/*?version=${taskVersion}" />` + os.EOL;
-    servicingXmlContent += `    <File Origin="nuget://${fullTaskName}/*" />` + os.EOL; // NOTE: Don't need version any more since we are doing package per task major. Don't need nested task folder since we are just doing zip.
+    servicingXmlContent += `    <File Origin="nuget://${fullTaskName}/*" />` + os.EOL;
     servicingXmlContent += `  </Directory>` + os.EOL;
 
-    // TODO: If we were to zip the task again we wouldn't need to do this. It would simplify the servicing XML but add time to unzip multiple times. We
-    //       would then have a nuget, inside that a zip, and inside that a zip and files.
     // locales.forEach(function (locale) {
     //     servicingXmlContent += getServicingXmlContentForLocale(taskFolderName, fullTaskName, taskVersion, locale);
     // });
