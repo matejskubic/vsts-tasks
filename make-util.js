@@ -1298,7 +1298,7 @@ var createNugetPackagePerTask = function (packagePath, /*nonAggregatedLayoutPath
             var taskName = taskJsonContents.name;
 
             // Create the full task name so we don't need to rely on the folder name.
-            var fullTaskName = $`Mseng.MS.TF.DistributedTask.Tasks.${taskName}V${taskJsonContents.version.Major}`;
+            var fullTaskName = `Mseng.MS.TF.DistributedTask.Tasks.${taskName}V${taskJsonContents.version.Major}`;
 
             // Create xml entries for UnifiedDependencies
             // <package id="Mseng.MS.TF.Build.Tasks.AzureCLI" version="1.132.0" availableAtDeployTime="true" />
