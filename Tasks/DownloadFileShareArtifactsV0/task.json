@@ -1,0 +1,80 @@
+{
+  "id": "E3CF3806-AD30-4EC4-8F1E-8ECD98771AA0",
+  "name": "DownloadFileShareArtifacts",
+  "friendlyName": "Download FileShare Artifacts",
+  "description": "Download FileShare Artifacts",
+  "helpMarkDown": "",
+  "category": "Utility",
+  "author": "Microsoft Corporation",
+  "version": {
+    "Major": 0,
+    "Minor": 136,
+    "Patch": 0
+  },
+  "groups": [
+    {
+        "name": "advanced",
+        "displayName": "Advanced",
+        "isExpanded": false
+    }
+  ],
+  "demands": [],
+  "inputs": [
+    {
+      "name": "location",
+      "type": "string",
+      "label": "Artifact location",
+      "required": true,
+      "helpMarkDown": "Fileshare location"
+    },
+    {
+      "name": "artifactName",
+      "type": "string",
+      "label": "Artifact name",
+      "defaultValue": "",
+      "required": true,
+      "helpMarkDown": "The name of the artifact to download"
+    },
+    {
+      "name": "itemPattern",
+      "type": "multiLine",
+      "label": "Matching pattern",
+      "defaultValue": "**",
+      "required": false,
+      "properties": {
+        "rows": "3",
+        "resizable": "true"
+      },
+      "helpMarkDown": "Specify files to be downloaded as multi line minimatch pattern. [More Information](https://aka.ms/minimatchexamples) <p>The default pattern (\\*\\*) will download all files across all artifacts in the build. To download all files within artifact drop use drop/**.</p>"
+    },
+    {
+      "name": "downloadPath",
+      "type": "string",
+      "label": "Destination directory",
+      "defaultValue": "$(System.ArtifactsDirectory)",
+      "required": true,
+      "helpMarkDown": "Path on the agent machine where the artifacts will be downloaded"
+    },
+    {
+      "name": "parallelizationLimit",
+      "type": "string",
+      "label": "Parallelization limit",
+      "defaultValue": "8",
+      "groupName": "advanced",
+      "required": false,
+      "helpMarkDown": "Number of files to download simultaneously"
+    }
+  ],
+  "instanceNameFormat": "Download FileShare Artifacts",
+  "execution": {
+    "Node": {
+      "target": "main.js",
+      "argumentFormat": ""
+    }
+  },
+  "messages": {
+    "DownloadArtifacts": "Downloading artifact %s from: %s",
+    "ArtifactsSuccessfullyDownloaded": "Successfully downloaded artifacts to %s",
+    "ArtifactNameDirectoryNotFound": "Directory '%s' does not exist. Falling back to parent directory: %s"
+  }
+}

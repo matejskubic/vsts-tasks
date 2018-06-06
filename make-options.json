@@ -41,6 +41,7 @@
         "DotNetCoreCLIV2",
         "DotNetCoreInstallerV0",
         "DownloadBuildArtifactsV0",
+        "DownloadFileShareArtifactsV0",
         "DownloadPackageV0",
         "DownloadSecureFileV1",
         "ExtractFilesV1",

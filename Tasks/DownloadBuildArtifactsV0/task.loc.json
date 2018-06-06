@@ -9,7 +9,7 @@
   "version": {
     "Major": 0,
     "Minor": 136,
-    "Patch": 1
+    "Patch": 2
   },
   "groups": [
     {
@@ -137,7 +137,6 @@
         "rows": "3",
         "resizable": "true"
       },
-      "visibleRule": "downloadType == specific",
       "helpMarkDown": "ms-resource:loc.input.help.itemPattern"
     },
     {
